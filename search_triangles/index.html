@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=utf-8 />
+<title>Victor Sierra Drift Simulator</title>
+<style>
+    body { font-family: Arial, Helvetica, sans-serif; }
+  article, aside, figure, footer, header, hgroup, 
+  menu, nav, section { display: block; }
+  canvas {border: 1px dotted #564b47;}
+  input { width: 150px; }
+  #driftangle, #driftspeed, #initialheading, #speed {
+    width: 250px;
+    margin: 15px;
+    float: left;
+  }
+</style>
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/ui/1.13.0/jquery-ui.js"></script>
+
+<script type="text/javascript">
+    function redrawCanvas() {
+        var turtle = {
+            x: 0,
+            y: 0,
+            angleInRadians: 0,
+            penDown: false,
+            penColor: "#000000",
+            lineWidth: 2
+        };
+        var canvas = document.getElementById('myDrawing');
+
+        
+        if (canvas && canvas.getContext) { // does the browser support 'canvas'?
+            turtle.ct = canvas.getContext("2d"); // get drawing context
+        } else {
+            alert('You need a browser which supports the HTML5 canvas!');
+        }
+            
+            
+        turtle.logPenStatus = function () {
+            console.log('x=' + this.x + "; y=" + this.y + '; angle = ' + this.angle + '; penDown = ' + this.penDown);
+        };
+                
+        turtle.forward = function (length) {
+            // console.log('forward(' + length + ')');
+            // this.logPenStatus();+
+            var driftspeed = $('#driftspeed').slider("value");
+            var driftangle = $('#driftangle').slider("value");
+            var initialheading = $('#initialheading').slider("value");
+            var speed = $('#speed').slider("value")/10;
+            $('#driftspeedDisplay').html(driftspeed);
+            $('#driftangleDisplay').html(driftangle);
+            $('#initialheadingDisplay').html(initialheading);
+            $('#speedDisplay').html(speed);
+
+            var x0 = this.x,
+                y0 = this.y;
+            var driftAngleRadians = degToRad(driftangle);
+        
+            this.x += length * speed * Math.sin(this.angleInRadians) + (driftspeed * Math.sin(driftAngleRadians));
+            this.y += length * speed * Math.cos(this.angleInRadians) + (driftspeed * Math.cos(driftAngleRadians));
+            if (this.ct) {
+                if (this.penDown) {
+                    //this.logPenStatus();
+                    this.ct.beginPath();
+                    this.ct.lineWidth = this.lineWidth;
+                    this.ct.strokeStyle = this.penColor;
+                    this.ct.moveTo(x0, y0);
+                    this.ct.lineTo(this.x, this.y);
+                    this.ct.stroke();
+                }
+            } else {
+                this.ct.moveTo(this.x, this.y);
+            }
+            return this;
+        };
+        
+        turtle.backward = function (length) {
+            this.forward(-length);
+            return this;
+        };
+        
+        turtle.left = function (angleInDegrees) {
+            // console.log('left(' + angleInDegrees + ')');
+            // A complete circle, 360º, is equivalent to 2π radians  
+            // angleInDegrees is an angle measure in degrees
+            this.angleInRadians += angleInDegrees * Math.PI / 180.0;
+            return this;
+        };
+        
+        function degToRad(angleInDegrees) {
+            return (angleInDegrees * 0.017453 );
+        }
+        
+        turtle.right = function (angleInDegrees) {
+            this.left(-angleInDegrees);
+            return this;
+        };
+                
+        turtle.angle = function () {
+            // the turtle status is hold in this.angleInRadians;
+            // degrees are often more convenient for the display
+            return this.angleInRadians * 180.0 / Math.PI;
+        };
+        turtle.setAngle = function (angleInDegrees) {
+            // the turtle status is hold in this.angleInRadians;
+            // degrees are often more convenient for the display
+            this.angleInRadians = degToRad(angleInDegrees);
+        };
+
+        
+        turtle.drawArrow = function () {
+            turtle.forward(50);
+            turtle.left(150);
+            turtle.forward(7);
+            turtle.backward(7);
+            turtle.right(150);
+            turtle.right(150);
+            turtle.forward(7);
+            turtle.backward(7);
+            turtle.left(150);
+        };
+        
+        
+        turtle.hexagon = function (length) {
+            var i;
+            for (i = 1; i <= 6; i++) {
+                turtle.forward(length);
+                turtle.left(60);
+            }
+        };
+        
+        
+        turtle.drawStar = function () {
+            var i;
+            for (i = 0; i < 18; i++) {
+                turtle.left(100);
+                turtle.forward(80);
+            }
+        };
+        
+        turtle.square = function (length) {
+            var i;
+            for (i = 1; i <= 4; i++) {
+                turtle.forward(length);
+                turtle.left(90);
+        
+            }
+        };
+        
+        turtle.figure3 = function (count, angle) {
+            var i;
+            for (i = 1; i <= count; i++) {
+                console.log(i);
+                turtle.drawArrow();
+                turtle.left(angle);
+            }
+        };
+        
+        
+        turtle.figure4 = function (count, angle, fn) {
+            var i;
+            for (i = 1; i <= count; i++) {
+                console.log(i);
+                fn();
+                turtle.left(angle);
+            }
+        };
+
+        // =====================================================================================
+        
+        var color = {
+            black: "#ffffff",
+            red: "#ff0000",
+            green: "#00ff00",
+            blue: "#0000ff",
+            yellow: "#ffff00",
+            fuchsia: "#ff00ff",
+            aqua: "#00ffff"
+        };
+        
+        
+        const context = canvas.getContext('2d');
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.fillStyle = '#55f';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        var initialheading = $('#initialheading').slider("value");
+
+        turtle.x = canvas.width/2;
+        turtle.y = canvas.height/2;
+        turtle.penDown = true;
+        turtle.setAngle(180-initialheading);
+
+        turtle.penColor = color.green;
+        turtle.forward(50);
+        turtle.penColor = color.red;
+        turtle.right(120);
+        turtle.forward(50);
+        turtle.right(120);
+        turtle.forward(100);
+        turtle.right(120);
+        turtle.forward(50);
+        turtle.right(120);
+        turtle.forward(100);
+        turtle.right(120);
+        turtle.forward(50);
+        turtle.right(120);
+        turtle.forward(50);
+    }
+    </script>
+</head>
+<body>
+    <h2>Victor Sierra Drift Simulator</h2>
+<form id='form1' action=''>
+    <table>
+        <tr>
+            <td>Drift speed: <div id="driftspeed"></div> <div id="driftspeedDisplay"></div></td>
+            <td>Initial heading: <div id="initialheading"></div> <div id="initialheadingDisplay"></div></td>
+        </tr>
+        <tr>
+            <td>Drift angle: <div id="driftangle"></div> <div id="driftangleDisplay"></div></td>
+            <td>Speed: <div id="speed"></div> <div id="speedDisplay"></div></td>
+        </tr>
+    </table>
+    <canvas id="myDrawing" width="1000" height="600"></canvas>
+    <p>Inspired by the Smarter Everyday Video "<a href='https://www.youtube.com/watch?v=aoXJfuPaFF8'>Why This Zig-Zag Coast Guard Search Pattern is Actually Genius - Smarter Every Day 268</a>"</p>
+    <p><a href='#' onclick='setExampleValues();'>Example values</a></p>
+    <p>Note: Speeds are not in any particular units. Angle and heading are in degrees.</p>
+</form>
+
+<script type="text/javascript">
+    function setExampleValues() {
+        $("#driftspeed").slider("value",46);
+        $("#driftangle").slider("value",90);
+        $("#initialheading").slider("value",153);
+        $("#speed").slider("value",17);
+        redrawCanvas();
+        return;
+    }
+  $( function() {
+    $("#driftspeed").slider({
+        orientation: "horizontal",
+        range: "min",
+        max: 255,
+        value: 0,
+        slide: redrawCanvas,
+        change: redrawCanvas
+      });
+      $("#driftangle").slider({
+        orientation: "horizontal",
+        range: "min",
+        max: 359,
+        value: 0,
+        slide: redrawCanvas,
+        change: redrawCanvas
+      });
+      $("#initialheading").slider({
+        orientation: "horizontal",
+        range: "min",
+        max: 359,
+        value: 180,
+        slide: redrawCanvas,
+        change: redrawCanvas
+      });
+      $("#speed").slider({
+        orientation: "horizontal",
+        range: "min",
+        max: 120,
+        value: 5,
+        slide: redrawCanvas,
+        change: redrawCanvas
+      });
+      redrawCanvas();
+  });
+</script>
+</body>
+</html>
