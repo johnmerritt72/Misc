@@ -59,8 +59,8 @@
                 y0 = this.y;
             var driftAngleRadians = degToRad(driftangle);
         
-            this.x += length * speed * Math.sin(this.angleInRadians) + (driftspeed * Math.sin(driftAngleRadians));
-            this.y += length * speed * Math.cos(this.angleInRadians) + (driftspeed * Math.cos(driftAngleRadians));
+            this.x += length * speed * Math.sin(this.angleInRadians) + (length * (driftspeed/20) * Math.sin(driftAngleRadians));
+            this.y += length * speed * Math.cos(this.angleInRadians) + (length * (driftspeed/20) * Math.cos(driftAngleRadians));
             if (this.ct) {
                 if (this.penDown) {
                     //this.logPenStatus();
@@ -233,10 +233,10 @@
 
 <script type="text/javascript">
     function setExampleValues() {
-        $("#driftspeed").slider("value",46);
+        $("#driftspeed").slider("value",19);
         $("#driftangle").slider("value",90);
-        $("#initialheading").slider("value",153);
-        $("#speed").slider("value",17);
+        $("#initialheading").slider("value",156);
+        $("#speed").slider("value",19);
         redrawCanvas();
         return;
     }
@@ -269,7 +269,7 @@
         orientation: "horizontal",
         range: "min",
         max: 120,
-        value: 5,
+        value: 17,
         slide: redrawCanvas,
         change: redrawCanvas
       });
